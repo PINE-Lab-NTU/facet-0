@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facet-0: A Robotic Foundation Model for Contact-Rich Precise Manipulation</title>
+<meta name="description" content="FACET-0: a robotic foundation model for contact-rich precise manipulation, trained on ManuFacet-1K — 1,000+ hours of force-synchronized precision-assembly data.">
+<link rel="icon" type="image/png" href="assets/img/favicon.png">
+<meta property="og:title" content="Facet-0: A Robotic Foundation Model for Contact-Rich Precise Manipulation">
+<meta property="og:description" content="ManuFacet-1K: 1,000 h of force-synchronized precision-assembly data. FACET-0: a foundation model that reasons, acts, and corrects at 0.5 mm.">
+<meta property="og:image" content="assets/poster/hero_fusion_j.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#04070c; --bg1:#080d15; --bg2:#0d1420;
+  --card:#0c121d; --card2:#101827;
+  --line:rgba(148,163,184,.13); --line2:rgba(148,163,184,.24);
+  --txt:#e9eef7; --mut:#93a3b8; --dim:#64748b;
+  --acc:#38bdf8; --acc2:#818cf8; --amber:#fbbf24; --green:#34d399;
+  --grad:linear-gradient(92deg,#38bdf8 0%,#818cf8 55%,#a78bfa 100%);
+  --radius:14px;
+  --disp:'Space Grotesk',Inter,system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:Inter,system-ui,-apple-system,sans-serif;background:var(--bg0);color:var(--txt);line-height:1.6;font-size:16px;overflow-x:hidden}
+img,video{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+::selection{background:rgba(56,189,248,.3)}
+
+/* ---------- nav ---------- */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:rgba(4,7,12,.72);border-bottom:1px solid transparent;transition:border-color .3s}
+.nav.scrolled{border-bottom-color:var(--line)}
+.nav-inner{max-width:1240px;margin:0 auto;padding:0 28px;height:64px;display:flex;align-items:center;gap:32px}
+.brand{display:flex;align-items:center;gap:11px;font-family:var(--disp);font-weight:700;font-size:17px;letter-spacing:.04em}
+.brand img{width:26px;height:26px}
+.brand small{display:block;font-family:Inter;font-size:9.5px;font-weight:600;letter-spacing:.22em;color:var(--dim);margin-top:-2px}
+.nav-links{display:flex;gap:26px;margin-left:auto;align-items:center}
+.nav-links a{font-size:13.5px;font-weight:500;color:var(--mut);transition:color .2s;white-space:nowrap}
+.nav-links a:hover{color:var(--txt)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;transition:all .2s;cursor:pointer;border:1px solid transparent}
+.btn-primary{background:var(--grad);color:#04070c}
+.btn-primary:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.btn-ghost{border-color:var(--line2);color:var(--txt)}
+.btn-ghost:hover{border-color:var(--acc);color:var(--acc)}
+.nav .btn{padding:8px 16px;font-size:13px}
+.nav-toggle{display:none;margin-left:auto;background:none;border:0;color:var(--txt);font-size:24px;cursor:pointer}
+
+/* ---------- hero ---------- */
+.hero{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.5}
+.hero::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,7,12,.55) 0%,rgba(4,7,12,.18) 40%,rgba(4,7,12,.86) 78%,var(--bg0) 100%)}
+.hero-content{position:relative;z-index:2;max-width:1240px;margin:0 auto;width:100%;padding:120px 28px 0}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--acc);margin-bottom:18px}
+.eyebrow::before{content:'';width:26px;height:1.5px;background:var(--acc)}
+.hero h1{font-family:var(--disp);font-size:clamp(38px,6vw,74px);line-height:1.04;font-weight:700;letter-spacing:-.02em;max-width:900px}
+.hero h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.lede{margin-top:22px;font-size:clamp(16px,1.6vw,19px);color:var(--mut);max-width:640px}
+.hero-ctas{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap}
+.hero-tag{position:absolute;right:28px;bottom:150px;z-index:2;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);background:rgba(4,7,12,.55);border:1px solid var(--line);padding:6px 12px;border-radius:999px;backdrop-filter:blur(6px)}
+.stats{position:relative;z-index:2;max-width:1240px;margin:64px auto 0;width:100%;padding:0 28px 30px;display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--line);border-top:1px solid var(--line)}
+.stat{background:var(--bg0);padding:26px 20px 6px}
+.stat b{font-family:var(--disp);font-size:clamp(26px,3vw,40px);font-weight:700;display:block;line-height:1.1}
+.stat b span{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat small{font-size:12.5px;color:var(--mut);letter-spacing:.02em}
+
+/* ---------- project film ---------- */
+.project-film .feature-vid{margin-bottom:0}
+.project-film .feature-vid video{aspect-ratio:960/544;object-fit:contain}
+
+/* ---------- shared section ---------- */
+section{padding:110px 0}
+.wrap{max-width:1240px;margin:0 auto;padding:0 28px}
+.sec-head{max-width:760px;margin-bottom:56px}
+.sec-head h2{font-family:var(--disp);font-size:clamp(28px,3.6vw,46px);font-weight:700;line-height:1.12;letter-spacing:-.015em}
+.sec-head h2 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sec-head p{margin-top:16px;color:var(--mut);font-size:16.5px}
+.alt{background:var(--bg1)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+.rv.in{opacity:1;transform:none}
+
+/* ---------- industry scenes ---------- */
+.scene-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:20px}
+.scene{border-radius:var(--radius);overflow:hidden;background:var(--card);border:1px solid var(--line);transition:border-color .25s,transform .25s}
+.scene:hover{border-color:rgba(56,189,248,.4);transform:translateY(-3px)}
+.scene img{width:100%;aspect-ratio:16/9;object-fit:cover}
+.scene .sc-body{padding:18px 22px 20px}
+.scene .sc-tag{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);font-weight:700}
+.scene b{display:block;font-family:var(--disp);font-size:clamp(22px,2.2vw,28px);margin:7px 0 3px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.scene small{color:var(--mut);font-size:12.5px;line-height:1.5}
+.scene-note{font-size:11.5px;color:var(--dim);margin-bottom:56px}
+
+/* ---------- problem ---------- */
+.compare{display:grid;grid-template-columns:1fr 1fr 1.15fr;gap:18px}
+.compare .card{padding:30px 28px;position:relative}
+.compare h3{font-family:var(--disp);font-size:19px;margin-bottom:6px}
+.compare .sub{font-size:13px;color:var(--dim);margin-bottom:18px}
+.compare ul{list-style:none;display:flex;flex-direction:column;gap:10px;font-size:14.5px;color:var(--mut)}
+.compare li{padding-left:26px;position:relative}
+.compare li::before{position:absolute;left:0;font-size:13px}
+.compare li.y::before{content:'✓';color:var(--green)}
+.compare li.n::before{content:'✕';color:#f87171}
+.compare .card.hl{background:linear-gradient(160deg,rgba(56,189,248,.09),rgba(129,140,248,.06)),var(--card);border-color:rgba(56,189,248,.35)}
+.compare .card.hl li.y::before{content:'✓';color:var(--acc)}
+.pill{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:4px 10px;border-radius:999px;border:1px solid var(--line2);color:var(--mut);margin-bottom:14px}
+.card.hl .pill{border-color:rgba(56,189,248,.5);color:var(--acc)}
+
+.gap-band{margin-top:64px;display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+.gap-band h3{font-family:var(--disp);font-size:clamp(22px,2.4vw,30px);line-height:1.2;margin-bottom:14px}
+.gap-band p{color:var(--mut);font-size:15.5px;margin-bottom:12px}
+.bars{display:flex;flex-direction:column;gap:22px}
+.bar-row small{display:flex;justify-content:space-between;font-size:12.5px;color:var(--mut);margin-bottom:7px;letter-spacing:.03em}
+.bar{height:14px;border-radius:7px;background:var(--card2);border:1px solid var(--line);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:7px;width:0;transition:width 1.4s cubic-bezier(.2,.7,.2,1)}
+.bar.home i{background:#334155}
+.bar.ind i{background:var(--grad)}
+.bar-note{font-size:12px;color:var(--dim);margin-top:14px}
+
+/* priorities table */
+.prio{margin-top:64px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.prio .card{padding:28px}
+.prio h4{font-family:var(--disp);font-size:17px;margin-bottom:4px}
+.prio .tag{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:16px;display:block}
+.prio dl{display:flex;flex-direction:column;gap:12px;font-size:14px}
+.prio dt{color:var(--txt);font-weight:600}
+.prio dd{color:var(--mut);margin-bottom:2px}
+.prio .card.ind-card{border-color:rgba(56,189,248,.3)}
+.prio .card.ind-card .tag{color:var(--acc)}
+
+/* ---------- platform ---------- */
+.plat-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;align-items:stretch}
+.plat-visual{background:#f4f6fa;border-radius:var(--radius);padding:34px 26px;display:flex;flex-direction:column;justify-content:center;border:1px solid var(--line)}
+.plat-visual img{width:100%}
+.plat-visual figcaption{text-align:center;color:#475569;font-size:12.5px;margin-top:14px;letter-spacing:.03em}
+.vid-card{position:relative;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:#000}
+.vid-card video{width:100%;height:100%;object-fit:cover;aspect-ratio:16/10}
+.vid-card.portrait video{aspect-ratio:9/16}
+.vid-card .cap{position:absolute;left:0;right:0;bottom:0;padding:36px 16px 12px;background:linear-gradient(transparent,rgba(0,0,0,.82));font-size:13px;font-weight:500;display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
+.vid-card .badge{font-size:10px;font-weight:700;letter-spacing:.12em;background:rgba(56,189,248,.16);border:1px solid rgba(56,189,248,.45);color:var(--acc);padding:3px 9px;border-radius:999px;white-space:nowrap}
+.mod-chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.chip{font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:999px;background:var(--card2);border:1px solid var(--line2);color:var(--mut)}
+.chip b{color:var(--acc);font-weight:700}
+.plat-feats{margin-top:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.feat{padding:26px;border-radius:var(--radius);background:var(--card);border:1px solid var(--line)}
+.feat .ic{width:38px;height:38px;border-radius:10px;background:linear-gradient(140deg,rgba(56,189,248,.16),rgba(129,140,248,.14));border:1px solid rgba(56,189,248,.3);display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:14px}
+.feat h4{font-family:var(--disp);font-size:16.5px;margin-bottom:7px}
+.feat p{font-size:14px;color:var(--mut)}
+.ui-block{margin-top:64px}
+.ui-block h3{font-family:var(--disp);font-size:clamp(20px,2.2vw,27px);margin-bottom:8px}
+.ui-block>p{color:var(--mut);font-size:15px;max-width:680px;margin-bottom:28px}
+.ui-shots{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.ui-shots figure{border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:var(--card)}
+.ui-shots img{width:100%}
+.ui-shots figcaption{padding:13px 16px;font-size:13px;color:var(--mut);border-top:1px solid var(--line)}
+
+/* ---------- engine / pipeline ---------- */
+.pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;position:relative}
+.pipe-step{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px 18px;position:relative;transition:border-color .25s,transform .25s}
+.pipe-step:hover{border-color:rgba(56,189,248,.45);transform:translateY(-3px)}
+.pipe-step .num{font-family:var(--disp);font-size:12px;font-weight:700;color:var(--acc);letter-spacing:.14em;margin-bottom:10px;display:block}
+.pipe-step h4{font-family:var(--disp);font-size:15px;line-height:1.25;margin-bottom:7px}
+.pipe-step p{font-size:12.5px;color:var(--mut);line-height:1.5}
+.pipe-step:not(:last-child)::after{content:'→';position:absolute;right:-14px;top:26px;color:var(--dim);font-size:15px;z-index:2}
+.loopback{margin-top:16px;display:flex;align-items:center;gap:14px;padding:16px 22px;border:1px dashed rgba(56,189,248,.4);border-radius:12px;background:rgba(56,189,248,.05)}
+.loopback .lb-ic{font-size:19px}
+.loopback p{font-size:13.5px;color:var(--mut)}
+.loopback b{color:var(--acc)}
+.cur-chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:44px}
+.metric-band{margin-top:44px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.metric{padding:24px;border-radius:var(--radius);background:var(--card);border:1px solid var(--line);text-align:center}
+.metric b{font-family:var(--disp);font-size:26px;display:block;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.metric small{font-size:12.5px;color:var(--mut)}
+
+/* ---------- model ---------- */
+.model-grid{display:grid;grid-template-columns:1.35fr .65fr;gap:24px;align-items:start}
+.arch{display:flex;flex-direction:column;gap:14px}
+.arch-row{display:grid;gap:12px}
+.arch-inputs{grid-template-columns:repeat(3,1fr)}
+.abox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;text-align:center}
+.abox .t{font-family:var(--disp);font-weight:600;font-size:14.5px}
+.abox .d{font-size:12px;color:var(--mut);margin-top:4px;line-height:1.45}
+.abox.main{background:linear-gradient(150deg,rgba(56,189,248,.12),rgba(129,140,248,.08)),var(--card);border-color:rgba(56,189,248,.4);padding:22px}
+.abox.main .t{font-size:17px}
+.abox.out{border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.05)}
+.arch-arrow{text-align:center;color:var(--dim);font-size:16px;line-height:1;margin:-2px 0}
+.arch-duo{grid-template-columns:1fr 1fr}
+.rl-vids{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.model-notes{margin-top:56px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+
+/* ---------- demos ---------- */
+.demo-group{margin-bottom:64px}
+.demo-group:last-child{margin-bottom:0}
+.demo-group .g-head{display:flex;align-items:baseline;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.demo-group h3{font-family:var(--disp);font-size:clamp(20px,2.2vw,26px)}
+.demo-group .g-head small{color:var(--dim);font-size:13.5px}
+.demo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.demo-grid.two{grid-template-columns:repeat(2,1fr)}
+.demo-grid.three{grid-template-columns:repeat(3,1fr)}
+.stars{color:var(--amber);letter-spacing:2px;font-size:11px}
+.spec-strip{margin-top:26px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.spec{padding:18px 20px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
+.spec b{font-size:13.5px;display:block;margin-bottom:4px;font-family:var(--disp)}
+.spec small{font-size:12px;color:var(--mut);line-height:1.5;display:block}
+
+/* ---------- tasks ---------- */
+.task-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.task-card{border-radius:var(--radius);overflow:hidden;background:var(--card);border:1px solid var(--line);display:flex;flex-direction:column}
+.task-card .tc-img{aspect-ratio:16/9;overflow:hidden;background:#0a0f16}
+.task-card .tc-img img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.task-card:hover .tc-img img{transform:scale(1.04)}
+.task-card .tc-body{padding:24px;flex:1;display:flex;flex-direction:column}
+.task-card h4{font-family:var(--disp);font-size:17px;margin-bottom:4px}
+.task-card .src{font-size:12px;color:var(--acc);letter-spacing:.1em;text-transform:uppercase;font-weight:600;margin-bottom:14px}
+.task-list{list-style:none;display:flex;flex-direction:column;gap:8px;font-size:13.5px;color:var(--mut)}
+.task-list li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed var(--line);padding-bottom:8px}
+.task-list li:last-child{border-bottom:0}
+
+/* ---------- embodiments ---------- */
+.emb-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+.emb{background:#000;border:1px solid var(--line);border-radius:12px;padding:18px 12px 14px;text-align:center;transition:border-color .25s}
+.emb:hover{border-color:rgba(129,140,248,.5)}
+.emb .imgbox{height:120px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.emb img{max-height:120px;width:auto;max-width:100%;object-fit:contain}
+.emb small{font-size:11.5px;color:var(--mut);letter-spacing:.04em}
+
+/* ---------- roadmap ---------- */
+.timeline{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-top:10px}
+.timeline::before{content:'';position:absolute;top:7px;left:2%;right:2%;height:2px;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.tl-item{padding-top:28px;position:relative}
+.tl-item::before{content:'';position:absolute;top:0;left:0;width:16px;height:16px;border-radius:50%;background:var(--bg1);border:3px solid var(--acc)}
+.tl-item:nth-child(n+4)::before{border-color:var(--acc2)}
+.tl-item .date{font-family:var(--disp);font-size:13px;font-weight:700;color:var(--acc);letter-spacing:.08em}
+.tl-item:nth-child(n+4) .date{color:var(--acc2)}
+.tl-item h4{font-family:var(--disp);font-size:15.5px;margin:7px 0 5px;line-height:1.3}
+.tl-item p{font-size:12.5px;color:var(--mut);line-height:1.5}
+.phase2{margin-top:56px;display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+.phase2 .card{padding:32px}
+.phase2 h3{font-family:var(--disp);font-size:21px;margin-bottom:10px}
+.phase2 p{font-size:14.5px;color:var(--mut);margin-bottom:14px}
+.phase2 .big{font-family:var(--disp);font-size:clamp(34px,4vw,52px);font-weight:700;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.05}
+.phase2 ul{list-style:none;display:flex;flex-direction:column;gap:10px;font-size:14px;color:var(--mut)}
+.phase2 li{padding-left:24px;position:relative}
+.phase2 li::before{content:'▸';position:absolute;left:2px;color:var(--acc)}
+.phase2 .vision-card{background:linear-gradient(150deg,rgba(129,140,248,.1),rgba(56,189,248,.05)),var(--card);border-color:rgba(129,140,248,.35)}
+
+/* ---------- partners ---------- */
+.partners-band{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.logo-chip{background:#fff;border-radius:12px;height:96px;display:flex;align-items:center;justify-content:center;padding:20px 28px;filter:saturate(.9)}
+.logo-chip img{max-height:52px;width:auto;max-width:100%;object-fit:contain}
+.partner-note{margin-top:22px;font-size:13.5px;color:var(--dim);text-align:center}
+
+/* ---------- footer ---------- */
+footer{background:var(--bg1);border-top:1px solid var(--line);padding:72px 0 44px}
+.foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:44px;margin-bottom:52px}
+.foot-grid h5{font-family:var(--disp);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:16px}
+.foot-grid p{font-size:14px;color:var(--mut)}
+.foot-grid ul{list-style:none;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.foot-grid ul a{color:var(--mut);transition:color .2s}
+.foot-grid ul a:hover{color:var(--acc)}
+.foot-logos{display:flex;gap:14px;align-items:center;margin-top:22px}
+.foot-chip{display:inline-flex;align-items:center;justify-content:center;background:#fff;border-radius:10px;padding:10px 16px;height:64px}
+.foot-chip.big{height:88px;padding:14px 22px}
+.foot-chip.big img{height:60px}
+.foot-chip.dark{background:#0a0f16;border:1px solid var(--line2)}
+.foot-logos img{height:44px;width:auto}
+.foot-bottom{border-top:1px solid var(--line);padding-top:26px;display:flex;justify-content:space-between;gap:14px;font-size:12.5px;color:var(--dim);flex-wrap:wrap}
+
+/* ---------- flywheel loop ---------- */
+.flywheel{margin-top:16px;display:flex;align-items:stretch;gap:0;border:1px dashed rgba(56,189,248,.4);border-radius:12px;background:rgba(56,189,248,.05);padding:18px 22px;flex-wrap:wrap}
+.fw-node{display:flex;align-items:center;gap:14px}
+.fw-node .fw-box{font-family:var(--disp);font-size:13.5px;font-weight:600;padding:9px 16px;border-radius:999px;background:var(--card2);border:1px solid var(--line2);white-space:nowrap}
+.fw-node .fw-box.hot{border-color:rgba(56,189,248,.55);color:var(--acc);background:rgba(56,189,248,.08)}
+.fw-node:not(:last-child)::after{content:'→';color:var(--dim);margin:0 14px;font-size:15px}
+.fw-ret{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--acc);letter-spacing:.06em}
+.fw-ret::before{content:'↺';font-size:18px}
+
+/* ---------- collection viz ---------- */
+.collect-viz{margin-top:26px;display:grid;grid-template-columns:1.12fr .88fr;gap:18px;align-items:stretch}
+.cv-map{position:relative;border-radius:var(--radius);border:1px solid var(--line);background:radial-gradient(120% 90% at 30% 10%,#0b1524 0%,#070d18 55%,#060a12 100%);overflow:hidden;min-height:380px;display:flex;flex-direction:column}
+.cv-map .cv-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 6px;position:relative;z-index:3}
+.cv-map .cv-head b{font-family:var(--disp);font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.live-pill{display:inline-flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:.16em;color:#4ade80;border:1px solid rgba(74,222,128,.4);background:rgba(74,222,128,.08);padding:4px 11px;border-radius:999px}
+.live-pill::before{content:'';width:7px;height:7px;border-radius:50%;background:#4ade80;animation:blink 1.6s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.cv-stage{position:relative;margin:4px 12px 10px;aspect-ratio:900/560}
+.cv-stage img{position:absolute;inset:0;width:100%;height:100%;opacity:.94}
+.cv-marker{position:absolute;transform:translate(-50%,-50%);background:none;border:0;cursor:pointer;padding:0;z-index:2}
+.cv-marker .dot{position:relative;width:14px;height:14px;border-radius:50%;background:var(--acc);box-shadow:0 0 12px rgba(56,189,248,.9);display:block}
+.cv-marker .dot::before,.cv-marker .dot::after{content:'';position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(56,189,248,.55);animation:ripple 2.6s linear infinite}
+.cv-marker .dot::after{animation-delay:1.3s}
+@keyframes ripple{0%{transform:scale(1);opacity:.9}100%{transform:scale(3.4);opacity:0}}
+.cv-marker .tag{position:absolute;left:50%;transform:translateX(-50%);top:-34px;font-family:var(--disp);font-size:12px;font-weight:600;white-space:nowrap;background:rgba(7,13,24,.85);border:1px solid var(--line2);padding:4px 12px;border-radius:999px;color:var(--txt);transition:border-color .2s,color .2s;backdrop-filter:blur(4px)}
+.cv-marker small{position:absolute;left:50%;transform:translateX(-50%);top:16px;font-size:10.5px;color:var(--mut);white-space:nowrap;letter-spacing:.04em}
+.cv-marker:hover .tag,.cv-marker:focus-visible .tag,.cv-marker.on .tag{border-color:var(--acc);color:var(--acc)}
+.cv-marker.sg .tag{top:auto;bottom:-36px}
+.cv-marker.sg small{top:auto;bottom:-52px}
+.cv-foot{position:relative;z-index:2;display:flex;gap:10px;padding:0 20px 16px;flex-wrap:wrap}
+.cv-foot .chip{font-size:11.5px;padding:5px 12px}
+.cv-stats{border-radius:var(--radius);border:1px solid var(--line);background:var(--card);padding:24px 26px;display:flex;flex-direction:column;transition:border-color .25s}
+.cv-stats.site-mode{border-color:rgba(56,189,248,.4)}
+.cv-stats .cs-eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between;align-items:center}
+.cv-stats .cs-eyebrow em{font-style:normal;color:var(--acc);letter-spacing:.08em;font-size:11px;opacity:0;transition:opacity .2s}
+.cv-stats.site-mode .cs-eyebrow em{opacity:1}
+.cv-stats h4{font-family:var(--disp);font-size:20px;margin:6px 0 2px}
+.cv-stats .big{font-family:var(--disp);font-size:clamp(38px,4vw,54px);font-weight:700;line-height:1.05;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.cv-stats .big small{font-size:.45em;-webkit-text-fill-color:var(--mut);font-weight:600;margin-left:4px}
+.cv-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0 6px}
+.cv-kpi{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.cv-kpi b{font-family:var(--disp);font-size:16.5px;display:block}
+.cv-kpi small{font-size:10.5px;color:var(--mut);letter-spacing:.03em}
+.cv-bars{margin-top:14px;display:flex;flex-direction:column;gap:11px}
+.cv-bars .cb-row{display:grid;grid-template-columns:52px 1fr 58px;align-items:center;gap:12px;font-size:12.5px}
+.cv-bars .cb-row span{color:var(--mut);font-weight:600}
+.cv-bars .cb-row b{text-align:right;font-family:var(--disp);font-size:12.5px;color:var(--txt)}
+.cv-bars .track{height:8px;border-radius:4px;background:var(--card2);border:1px solid var(--line);overflow:hidden}
+.cv-bars .fill{display:block;height:100%;border-radius:4px;background:var(--grad);width:0;transition:width .9s cubic-bezier(.2,.7,.2,1)}
+.in .cv-bars .fill{width:var(--w)}
+.cv-note{margin-top:auto;padding-top:14px;font-size:11.5px;color:var(--dim)}
+.cv-swap{transition:opacity .18s}
+.cv-swap.fade{opacity:0}
+
+/* ---------- data band (no map) ---------- */
+.data-band{display:grid;grid-template-columns:auto 1fr;gap:24px 64px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:32px 38px}
+.db-left{display:flex;flex-direction:column;gap:13px;align-items:flex-start}
+.db-big{font-family:var(--disp);font-size:clamp(42px,4.5vw,60px);font-weight:700;line-height:1;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.db-big small{font-size:.4em;-webkit-text-fill-color:var(--mut);font-weight:600;margin-left:6px}
+.db-note{font-size:12.5px;color:var(--dim)}
+.db-right{display:flex;flex-direction:column;gap:14px}
+.data-band .cv-kpis{margin:0}
+@media(max-width:1080px){.data-band{grid-template-columns:1fr}}
+
+/* ---------- dataset logo chip ---------- */
+.ds-chip{display:flex;width:max-content;align-items:center;background:#fff;border-radius:12px;padding:11px 20px;height:58px;margin-bottom:22px;transition:transform .2s,box-shadow .2s}
+.ds-chip:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(56,189,248,.25)}
+.ds-chip img{height:100%;width:auto}
+
+/* ---------- embodiment trio ---------- */
+.trio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.trio{border-radius:var(--radius);border:1px solid var(--line);background:var(--card);overflow:hidden;transition:border-color .25s,transform .25s}
+.trio:hover{border-color:rgba(56,189,248,.45);transform:translateY(-3px)}
+.trio .t-img{background:#fff;height:210px;display:flex;align-items:center;justify-content:center;padding:20px}
+.trio .t-img img{max-height:100%;width:auto;object-fit:contain}
+.trio .t-body{padding:20px 22px 22px}
+.trio h4{font-family:var(--disp);font-size:17px}
+.trio .t-sub{font-size:12.5px;color:var(--mut);margin:3px 0 0}
+.target-strip{margin-top:18px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.target-strip .lbl{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);font-weight:700}
+
+/* ---------- engine evidence: sync align + saliency ---------- */
+.engine-ev{margin-top:44px;display:grid;grid-template-columns:1.15fr .85fr;gap:18px;align-items:stretch}
+.sync-panel{padding:24px 26px;display:flex;flex-direction:column}
+.sync-panel .sp-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.sync-panel h4{font-family:var(--disp);font-size:16.5px}
+.sync-panel .sp-head small{color:var(--dim);font-size:12px;letter-spacing:.04em}
+.sync-grid{display:grid;grid-template-columns:172px 1fr;gap:0 18px;flex:1;min-height:190px}
+.sync-labels{display:flex;flex-direction:column;justify-content:space-between;padding:7px 0}
+.sync-labels span{font-size:12.5px;color:var(--mut);font-weight:600;height:20px;display:flex;align-items:center;justify-content:space-between;gap:8px;white-space:nowrap}
+.sync-labels b{font-family:var(--disp);font-size:11px;color:var(--dim)}
+.sync-labels .out{color:var(--txt)}
+.sync-labels .out b{color:var(--acc2)}
+.sync-tracks{position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:7px 0}
+.sync-tracks .tk{height:20px;border-radius:4px;overflow:hidden;background-color:rgba(148,163,184,.05)}
+.tk.t160{background-image:repeating-linear-gradient(90deg,rgba(52,211,153,.55) 0 2px,transparent 2px 7px)}
+.tk.t15{background-image:repeating-linear-gradient(90deg,rgba(56,189,248,.8) 0 9px,transparent 9px 46px)}
+.tk.t12{background-image:repeating-linear-gradient(90deg,rgba(251,191,36,.6) 0 9px,transparent 9px 58px)}
+.tk.tout{background-image:repeating-linear-gradient(90deg,rgba(129,140,248,.95) 0 9px,transparent 9px 46px);outline:1px dashed rgba(129,140,248,.35);outline-offset:3px}
+.sync-cursor{position:absolute;top:0;bottom:0;width:2px;border-radius:2px;background:linear-gradient(180deg,transparent,rgba(56,189,248,.95),transparent);box-shadow:0 0 16px rgba(56,189,248,.8);animation:sweep 6s linear infinite}
+@keyframes sweep{0%{left:0}100%{left:calc(100% - 2px)}}
+@media (prefers-reduced-motion:reduce){.sync-cursor{animation:none;left:36%}}
+.sp-foot{margin-top:18px;font-size:12px;color:var(--dim);line-height:1.55}
+.saliency-card{display:flex;flex-direction:column}
+.saliency-card video{aspect-ratio:900/940}
+.saliency-card .cap{position:static;background:var(--card);border-top:1px solid var(--line);padding:12px 16px}
+
+/* ---------- featured one-take video ---------- */
+.feature-vid{margin-bottom:48px}
+.feature-vid video{aspect-ratio:16/9;width:100%;object-fit:cover}
+.feature-vid .cap{font-size:15px;padding:48px 20px 16px}
+
+/* ---------- model comparison stack ---------- */
+.cmp-stack{display:flex;flex-direction:column;gap:14px}
+.cmp-stack .vid-card video{aspect-ratio:16/9}
+.cmp-note{font-size:12.5px;color:var(--dim);line-height:1.5}
+.cmp-note b{color:var(--mut);font-weight:600}
+
+/* ---------- freq badges / arch ---------- */
+.freq{display:inline-block;margin-top:9px;font-size:10.5px;font-weight:700;letter-spacing:.1em;padding:3px 10px;border-radius:999px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.35);color:var(--acc)}
+.freq.amber{background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.35);color:var(--amber)}
+.freq.green{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.35);color:var(--green)}
+.arch-caption{margin-top:4px;text-align:center;font-size:12.5px;color:var(--dim)}
+.arch-caption b{color:var(--mut)}
+
+/* ---------- roadmap embodiment expansion ---------- */
+.emb-expand{margin-top:64px}
+.emb-expand h3{font-family:var(--disp);font-size:clamp(20px,2.2vw,27px);margin-bottom:8px}
+.emb-expand>p{color:var(--mut);font-size:15px;max-width:720px;margin-bottom:26px}
+
+/* ---------- responsive ---------- */
+@media(max-width:1080px){
+  .pipe{grid-template-columns:repeat(3,1fr)}
+  .pipe-step:nth-child(3)::after{display:none}
+  .demo-grid{grid-template-columns:repeat(2,1fr)}
+  .collect-viz{grid-template-columns:1fr}
+  .cv-map{min-height:340px}
+  .trio-grid{grid-template-columns:1fr 1fr}
+  .fw-ret{margin-left:0;width:100%;margin-top:10px}
+  .engine-ev{grid-template-columns:1fr}
+  .cmp-stack{max-width:560px}
+  .emb-grid{grid-template-columns:repeat(4,1fr)}
+  .model-grid{grid-template-columns:1fr}
+  .rl-vids{max-width:560px}
+  .timeline{grid-template-columns:1fr;gap:26px}
+  .timeline::before{left:7px;right:auto;top:2%;bottom:2%;width:2px;height:auto;background:linear-gradient(180deg,var(--acc),var(--acc2))}
+  .tl-item{padding-top:0;padding-left:34px}
+  .metric-band,.spec-strip{grid-template-columns:repeat(2,1fr)}
+  .compare,.task-cards,.plat-feats,.model-notes{grid-template-columns:1fr 1fr}
+  .plat-grid,.gap-band,.prio,.phase2{grid-template-columns:1fr}
+  .partners-band{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:720px){
+  .nav-links{display:none;position:absolute;top:64px;left:0;right:0;flex-direction:column;background:rgba(4,7,12,.97);padding:20px 28px 26px;gap:18px;border-bottom:1px solid var(--line);align-items:flex-start}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .compare,.task-cards,.plat-feats,.ui-shots,.demo-grid,.demo-grid.two,.demo-grid.three,.model-notes,.pipe,.trio-grid,.scene-grid{grid-template-columns:1fr}
+  .pipe-step::after{display:none!important}
+  .emb-grid{grid-template-columns:repeat(2,1fr)}
+  .cv-map{min-height:300px}
+  .cv-kpis{grid-template-columns:repeat(2,1fr)}
+  .fw-node{width:100%}
+  .fw-node:not(:last-child)::after{display:none}
+  .foot-grid{grid-template-columns:1fr}
+  section{padding:76px 0}
+  .hero-tag{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a class="brand" href="https://pine-lab-ntu.github.io/" target="_blank" rel="noopener" title="PINE Lab @ NTU">
+      <img src="assets/img/favicon.png" alt="PINE Lab">
+      <span>DATA FOUNDRY<small>NTU&nbsp;PINE&nbsp;LAB</small></span>
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+    <div class="nav-links" id="navLinks">
+      <a href="#why">Why</a>
+      <a href="#demos">Demos</a>
+      <a href="#dataset">ManuFacet-1K</a>
+      <a href="#model">FACET-0</a>
+      <a href="#partners">Tasks</a>
+      <a class="btn btn-primary" href="mailto:ziwei.wang@ntu.edu.sg">Partner with us</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero" id="top">
+  <video autoplay muted loop playsinline poster="assets/poster/hero_ram_dual_j.jpg">
+    <source src="assets/video/hero_ram_dual_j.mp4" type="video/mp4">
+  </video>
+  <span class="hero-tag">FACET-0 autonomous rollout</span>
+  <div class="hero-content">
+    <span class="eyebrow">PINE Lab · Nanyang Technological University · Singapore</span>
+    <a class="ds-chip" href="https://huggingface.co/Pinelab/Facet-0" target="_blank" rel="noopener" aria-label="FACET project on Hugging Face"><img src="assets/img/facet_logo_j.png" alt="FACET logo"></a>
+    <h1><span class="g">Facet-0</span>: A Robotic Foundation Model for Contact-Rich Precise Manipulation</h1>
+    <p class="lede"><b>ManuFacet-1K</b>, a force-synchronized precision-assembly dataset — and <b>FACET-0</b>, the foundation model it trains: reasoning, acting, and correcting at 0.5&nbsp;mm.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-primary" href="#demos">▶&ensp;Watch the system work</a>
+      <a class="btn btn-ghost" href="https://huggingface.co/Pinelab/Facet-0" target="_blank" rel="noopener">🤗&ensp;FACET-0 model&ensp;↗</a>
+      <a class="btn btn-ghost" href="https://huggingface.co/datasets/Pinelab/ManuFacet-1K" target="_blank" rel="noopener">🤗&ensp;ManuFacet-1K dataset&ensp;↗</a>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat"><b><span data-count="1000">0</span>&nbsp;h</b><small>demonstrations + rollouts · ManuFacet-1K</small></div>
+    <div class="stat"><b><span data-count="0.5" data-decimals="1">0</span>&nbsp;mm</b><small>action precision · fine assembly regime</small></div>
+    <div class="stat"><b><span data-count="4">0</span></b><small>high-precision assembly tasks</small></div>
+    <div class="stat"><b><span data-count="3">0</span></b><small>embodiments · one shared schema</small></div>
+    <div class="stat"><b><span data-count="2">0</span></b><small>collection sites · live network</small></div>
+  </div>
+</header>
+
+<!-- ============ PROJECT FILM ============ -->
+<section class="project-film" aria-label="FACET-0 project film">
+  <div class="wrap">
+    <div class="vid-card feature-vid rv">
+      <video controls playsinline preload="metadata" poster="assets/poster/facet0_project_film.jpg" aria-label="FACET-0 project film">
+        <source src="assets/video/facet0_project_film.mp4" type="video/mp4">
+      </video>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WHY ============ -->
+<section id="why">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow">The problem</span>
+      <h2>Our world is built on <span class="g">assemblies</span></h2>
+      <p>Assembly, insertion, fastening, alignment — the operations that decide quality and yield are still labor-intensive and brittle to automate.</p>
+    </div>
+
+    <div class="scene-grid rv">
+      <div class="scene">
+        <img src="assets/img/scene_aero_j.jpg" alt="Aero-engine final assembly line" loading="lazy">
+        <div class="sc-body"><span class="sc-tag">Aero-engine assembly</span><b>≈18,000</b><small>parts in a single Trent engine</small></div>
+      </div>
+      <div class="scene">
+        <img src="assets/img/scene_semi_j.jpg" alt="Semiconductor precision electronics assembly" loading="lazy">
+        <div class="sc-body"><span class="sc-tag">Semiconductor &amp; electronics</span><b>±5–25 µm</b><small>chip placement / bonding precision</small></div>
+      </div>
+      <div class="scene">
+        <img src="assets/img/scene_line_j.jpg" alt="Automated assembly and inspection cell" loading="lazy">
+        <div class="sc-body"><span class="sc-tag">Assembly · inspection · loading</span><b>2.1M</b><small>unfilled US manufacturing jobs by 2030</small></div>
+      </div>
+    </div>
+    <p class="scene-note rv">Sources: Rolls-Royce · Palomar Technologies / Semiconductor Digest · Deloitte × The Manufacturing Institute, 2021.</p>
+
+    <div class="compare rv">
+      <div class="card">
+        <span class="pill">Status quo</span>
+        <h3>Pre-programmed automation</h3>
+        <div class="sub">Fixed trajectories, fixed fixtures</div>
+        <ul>
+          <li class="y">Highly efficient at a single task</li>
+          <li class="n">Can't adapt to part variation or layout changes</li>
+          <li class="n">Painful setup — time, money, expert teaching</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="pill">Status quo</span>
+        <h3>Human labor</h3>
+        <div class="sub">Skilled operators on the line</div>
+        <ul>
+          <li class="y">Flexible and adaptive</li>
+          <li class="n">Structural labor shortage</li>
+          <li class="n">Painful runtime — fatigue, mental health, safety</li>
+        </ul>
+      </div>
+      <div class="card hl">
+        <span class="pill">Our approach</span>
+        <h3>Data-driven manufacturing intelligence</h3>
+        <div class="sub">Foundation models trained on real industrial data</div>
+        <ul>
+          <li class="y">Adapts across parts, layouts, and product batches</li>
+          <li class="y">Industrial-grade precision and repeatability</li>
+          <li class="y">Continually improves while deployed on the line</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="gap-band">
+      <div class="rv">
+        <span class="eyebrow">The bottleneck</span>
+        <h3>Scaling ≠ precision — the gap is <em>manufacturing</em> data</h3>
+        <p>Under 1% of public robot data touches manufacturing assembly — and scale buys generalization, not the contact judgment, force correction, and recovery that ±0.1&nbsp;mm insertion demands. Crossing that gap takes a dataset built for contact.</p>
+      </div>
+      <div class="bars rv">
+        <div class="bar-row">
+          <small><span>General-purpose robot data · Open X-Embodiment, AgiBot World…</span><b>~11,000&nbsp;h</b></small>
+          <div class="bar home"><i data-w="100"></i></div>
+        </div>
+        <div class="bar-row">
+          <small><span>Manufacturing assembly in public data · REASSEMBLE + FMB</span><b>44&nbsp;h</b></small>
+          <div class="bar home"><i data-w="2"></i></div>
+        </div>
+        <div class="bar-row">
+          <small><span>ManuFacet-1K · force-synchronized precision assembly</span><b>1,000&nbsp;h</b></small>
+          <div class="bar ind"><i data-w="12"></i></div>
+        </div>
+        <div class="bar-note">Public dataset hours: Open X-Embodiment ~7–11k h · AgiBot World 2.9k h · RoboCasa365 2k h · REASSEMBLE 13 h · FMB 31 h.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ DEMOS ============ -->
+<section id="demos" class="alt">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow">Demonstrations</span>
+      <h2>Four assemblies, <span class="g">fully autonomous</span></h2>
+      <p>One uncut evaluation run on a real Dell workstation — RAM, CPU, GPU, and disk, back to back.</p>
+    </div>
+
+    <div class="vid-card feature-vid rv">
+      <video muted loop playsinline preload="none" poster="assets/poster/eval_alltasks_third_0826.jpg" data-src="assets/video/eval_alltasks_third_0826.mp4" aria-label="One-take evaluation, third-person view"></video>
+      <div class="cap"><span>One take — all four tasks, no cuts · FACET-0</span><span class="badge">8×</span></div>
+    </div>
+
+    <div class="demo-group">
+      <div class="g-head rv"><h3>Four task results — end to end</h3><small>Third-person view · full FACET-0 episodes</small></div>
+      <div class="demo-grid rv">
+        <div class="vid-card"><video muted loop playsinline preload="none" poster="assets/poster/eval_ram_j.jpg" data-src="assets/video/eval_ram_j.mp4"></video><div class="cap"><span>RAM insertion <span class="stars">★★★</span></span><span class="badge">TIMELAPSE</span></div></div>
+        <div class="vid-card"><video muted loop playsinline preload="none" poster="assets/poster/eval_cpu_j.jpg" data-src="assets/video/eval_cpu_j.mp4"></video><div class="cap"><span>CPU placement <span class="stars">★★★★★</span></span><span class="badge">TIMELAPSE</span></div></div>
+        <div class="vid-card"><video muted loop playsinline preload="none" poster="assets/poster/eval_gpu_j.jpg" data-src="assets/video/eval_gpu_j.mp4"></video><div class="cap"><span>GPU installation <span class="stars">★★★★</span></span><span class="badge">TIMELAPSE</span></div></div>
+        <div class="vid-card"><video muted loop playsinline preload="none" poster="assets/poster/eval_disk_j.jpg" data-src="assets/video/eval_disk_j.mp4"></video><div class="cap"><span>Disk mounting <span class="stars">★★★★</span></span><span class="badge">TIMELAPSE</span></div></div>
+      </div>
+    </div>
+
+    <div class="demo-group">
+      <div class="g-head rv"><h3>Key skills — up close</h3><small>The contact-rich moments that decide each task</small></div>
+      <div class="demo-grid rv">
+        <div class="vid-card"><video muted loop playsinline preload="none" poster="assets/poster/skill_ram_j.jpg" data-src="assets/video/skill_ram_j.mp4"></video><div class="cap"><span>RAM · DIMM seating &amp; latch</span></div></div>
+        <div class="vid-card"><video muted loop playsinline preload="none" poster="assets/poster/skill_cpu_j.jpg" data-src="assets/video/skill_cpu_j.mp4"></video><div class="cap"><span>CPU · socket-level placement</span></div></div>
+        <div class="vid-card"><video muted loop playsinline preload="none" poster="assets/poster/skill_gpu_j.jpg" data-src="assets/video/skill_gpu_j.mp4"></video><div class="cap"><span>GPU · PCIe alignment &amp; press</span></div></div>
+        <div class="vid-card"><video muted loop playsinline preload="none" poster="assets/poster/skill_disk_j.jpg" data-src="assets/video/skill_disk_j.mp4"></video><div class="cap"><span>Disk · caddy engagement</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DATASET · ManuFacet-1K ============ -->
+<section id="dataset">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow">The dataset</span>
+      <h2>ManuFacet-1K — one dataset, <span class="g">three embodiments</span></h2>
+      <p>1,000 hours of force-synchronized precision assembly — one schema, one aligned action space, collected live across two sites.</p>
+    </div>
+
+    <div class="data-band rv">
+      <div class="db-left">
+        <span class="live-pill">LIVE</span>
+        <div class="db-big">641.911<small>h trainable</small></div>
+        <div class="db-note">2 collection sites · one schema, one QA gate</div>
+      </div>
+      <div class="db-right">
+        <div class="cv-kpis">
+          <div class="cv-kpi"><b>25,153</b><small>curated episodes</small></div>
+          <div class="cv-kpi"><b>+28.3&nbsp;h</b><small>last 24 h</small></div>
+          <div class="cv-kpi"><b>90%</b><small>QA pass rate</small></div>
+        </div>
+        <div class="cv-bars">
+          <div class="cb-row"><span>CPU</span><span class="track"><span class="fill" style="--w:37.35%"></span></span><b>239.724&nbsp;h</b></div>
+          <div class="cb-row"><span>RAM</span><span class="track"><span class="fill" style="--w:21.90%"></span></span><b>140.548&nbsp;h</b></div>
+          <div class="cb-row"><span>Disk</span><span class="track"><span class="fill" style="--w:23.41%"></span></span><b>150.280&nbsp;h</b></div>
+          <div class="cb-row"><span>GPU</span><span class="track"><span class="fill" style="--w:17.35%"></span></span><b>111.360&nbsp;h</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mod-chips rv">
+      <span class="chip"><b>Force-synchronized</b> · wrist F/T on every frame</span>
+      <span class="chip"><b>One clock</b> · 160 Hz state, 15 Hz vision</span>
+      <span class="chip"><b>Language</b> · subtask semantic tags</span>
+      <span class="chip"><b>Recovery-rich</b> · failure + recovery segments kept</span>
+      <span class="chip"><b>0.5 mm</b> · action-precision regime</span>
+    </div>
+
+    <div class="trio-grid rv" style="margin-top:44px">
+      <div class="trio">
+        <div class="t-img"><img src="assets/img/emb_ur7e_j.png" alt="Universal Robots UR7e collaborative arm" loading="lazy"></div>
+        <div class="t-body">
+          <h4>UR7e</h4>
+          <div class="t-sub">primary collection fleet · 4-arm parallel cell</div>
+        </div>
+      </div>
+      <div class="trio">
+        <div class="t-img"><img src="assets/img/emb_xarm_j.png" alt="UFactory xArm collaborative arm" loading="lazy"></div>
+        <div class="t-body">
+          <h4>xArm</h4>
+          <div class="t-sub">cross-embodiment transfer platform</div>
+        </div>
+      </div>
+      <div class="trio">
+        <div class="t-img"><img src="assets/img/emb_franka_hd_j.png" alt="Franka research arm with gripper" loading="lazy"></div>
+        <div class="t-body">
+          <h4>Franka</h4>
+          <div class="t-sub">high-compliance research platform</div>
+        </div>
+      </div>
+    </div>
+    <div class="target-strip rv">
+      <span class="lbl">Assembly targets</span>
+      <span class="chip"><b>Dell Precision T5810</b> · 72% of episodes</span>
+      <span class="chip"><b>Dell Precision T1700</b> · 28% of episodes</span>
+      <span class="chip">full-tower + mid-tower chassis variation</span>
+    </div>
+
+    <div class="demo-group" style="margin-top:72px;margin-bottom:0">
+      <div class="g-head rv"><h3>Inside the episodes — teleoperated collection, up close</h3><small>What ManuFacet-1K captures · expert demonstrations at wrist level</small></div>
+      <div class="demo-grid three rv">
+        <div class="vid-card"><video muted loop playsinline preload="none" poster="assets/poster/fine_ram_j.jpg" data-src="assets/video/fine_ram_j.mp4"></video><div class="cap"><span>RAM · DIMM seating &amp; latch</span><span class="badge">REAL-TIME</span></div></div>
+        <div class="vid-card"><video muted loop playsinline preload="none" poster="assets/poster/fine_cpu_j.jpg" data-src="assets/video/fine_cpu_j.mp4"></video><div class="cap"><span>CPU · socket-level placement</span><span class="badge">2×</span></div></div>
+        <div class="vid-card"><video muted loop playsinline preload="none" poster="assets/poster/fine_gpu_j.jpg" data-src="assets/video/fine_gpu_j.mp4"></video><div class="cap"><span>GPU · PCIe alignment &amp; press</span><span class="badge">REAL-TIME</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOUNDATION MODEL ============ -->
+<section id="model" class="alt">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow">Foundation model · FACET-0</span>
+      <h2>An <span class="g">industrial robotic foundation model</span> that reasons, acts, and corrects</h2>
+      <p>One interface bridges general VLAs and precision contact control — <b>reference action → force residual → safe execution</b>, corrected at 0.5&nbsp;mm.</p>
+    </div>
+
+    <div class="model-grid">
+      <div class="arch rv">
+        <div class="arch-row arch-inputs">
+          <div class="abox"><div class="t">📝 Prompt</div><div class="d">"Insert the RAM into the right slot."</div></div>
+          <div class="abox"><div class="t">📷 Vision</div><div class="d">3 RGB + wrist depth</div></div>
+          <div class="abox"><div class="t">🧲 Force</div><div class="d">wrist F/T · force-history window</div></div>
+        </div>
+        <div class="arch-arrow">▼</div>
+        <div class="abox main">
+          <div class="t">Robotic Reasoning VLM</div>
+          <div class="d">Semantic planning &amp; subtask tracking, chain-of-thought · "Align with slot"<br>reference action-force chunks (coarse)</div>
+          <span class="freq amber">semantic planning · ≈5–10 Hz</span>
+        </div>
+        <div class="arch-arrow">▼</div>
+        <div class="arch-row arch-duo">
+          <div class="abox"><div class="t">Force-Residual Head</div><div class="d">force history → Δa correction<br>refines coarse chunks into fine action-force chunks</div><span class="freq">force closed loop · ≈20 Hz · 0.5 mm</span></div>
+          <div class="abox"><div class="t">Safety Critic</div><div class="d">value Q(s, z, f, a) gates every action<br>inside contact-safe force bounds</div><span class="freq">safe execution envelope</span></div>
+        </div>
+        <div class="arch-arrow">▼</div>
+        <div class="abox out"><div class="t">🤖 Robot Action</div><div class="d">compliant, contact-aware execution</div><span class="freq green">precision control · ≈200 Hz</span></div>
+      </div>
+
+      <div class="cmp-stack rv">
+        <div class="vid-card">
+          <video muted loop playsinline preload="none" poster="assets/poster/cmp_vision_j.jpg" data-src="assets/video/cmp_vision_j.mp4"></video>
+          <div class="cap"><span>Vision-only — jams at contact</span></div>
+        </div>
+        <div class="vid-card">
+          <video muted loop playsinline preload="none" poster="assets/poster/cmp_force_j.jpg" data-src="assets/video/cmp_force_j.mp4"></video>
+          <div class="cap"><span>With force residual — corrects &amp; seats</span></div>
+        </div>
+        <p class="cmp-note">Same insertion, with and without force fusion: <b>lower peak contact force · smaller insertion error · faster recovery</b>.</p>
+      </div>
+    </div>
+
+    <div class="model-notes rv">
+      <div class="feat"><div class="ic">🎓</div><h4>Pre-train — learn the craft</h4><p>Teleoperated assembly plus assembly-VQA instills skills and task priors — what to do, and how it should feel.</p></div>
+      <div class="feat"><div class="ic">🎯</div><h4>Post-train — get it right</h4><p>Reward-driven updates from real rollouts: <b>+45%</b> success, <b>−40%</b> cycle time, <b>+60%</b> failure recovery.</p></div>
+      <div class="feat"><div class="ic">🔄</div><h4>Adapt — keep it running</h4><p>Few-shot, safety-bounded transfer to new parts, fixtures, and embodiments — <b>~6.6%</b> of weights, <b>+30%</b> adapted success.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PARTNERS ============ -->
+<section id="partners">
+  <div class="wrap">
+    <div class="sec-head rv" style="text-align:center;margin-left:auto;margin-right:auto">
+      <span class="eyebrow" style="justify-content:center">Task portfolio</span>
+      <h2>Contact-rich tasks mapped to <span class="g">real manufacturing needs</span></h2>
+      <p>Task definitions, tolerances, and success criteria come directly from partner production lines.</p>
+    </div>
+    <div class="task-cards" style="margin-bottom:56px">
+      <div class="task-card rv">
+        <div class="tc-img"><img src="assets/poster/tele_cpu.jpg" alt="UR7e arm performing CPU placement inside a PC chassis" loading="lazy"></div>
+        <div class="tc-body">
+          <h4>PC / PCB contact-rich assembly</h4>
+          <span class="src">Electronics &amp; 3C · ManuFacet-1K core</span>
+          <ul class="task-list">
+            <li><span>RAM insertion ×2</span><span>26%&ensp;<span class="stars">★★★</span></span></li>
+            <li><span>GPU installation</span><span>28%&ensp;<span class="stars">★★★★</span></span></li>
+            <li><span>Disk mounting</span><span>20%&ensp;<span class="stars">★★★★</span></span></li>
+            <li><span>CPU placement</span><span>26%&ensp;<span class="stars">★★★★★</span></span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="task-card rv">
+        <div class="tc-img"><img src="assets/img/task_car_panel.webp" alt="Car body panel assembly task" loading="lazy"></div>
+        <div class="tc-body">
+          <h4>Car-body contact-rich assembly</h4>
+          <span class="src">Automotive · next up</span>
+          <ul class="task-list">
+            <li><span>Label placement</span><span class="stars">★★★</span></li>
+            <li><span>Strip alignment</span><span class="stars">★★★★</span></li>
+            <li><span>Riveting</span><span class="stars">★★★★</span></li>
+            <li><span>Speaker assembly</span><span class="stars">★★★★★</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="task-card rv">
+        <div class="tc-img"><img src="assets/img/task_engine.webp" alt="Aircraft engine inspection" loading="lazy"></div>
+        <div class="tc-body">
+          <h4>Industrial inspection</h4>
+          <span class="src">Aero-engine MRO · next up</span>
+          <ul class="task-list">
+            <li><span>Part scanning</span><span class="stars">★★★</span></li>
+            <li><span>Quality verification</span><span class="stars">★★★★</span></li>
+            <li><span>Defect localization</span><span class="stars">★★★★</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer id="about">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <h5>Data Foundry</h5>
+        <p>A PINE Lab initiative at Nanyang Technological University, Singapore — data and foundation models for precise, reliable manufacturing.</p>
+        <div class="foot-logos">
+          <span class="foot-chip big"><img src="assets/img/logo_ntu_white.webp" alt="Nanyang Technological University"></span>
+          <a class="foot-chip dark big" href="https://pine-lab-ntu.github.io/" target="_blank" rel="noopener"><img src="assets/img/logo_pine_t.png" alt="PINE Lab"></a>
+          <a class="foot-chip" href="https://huggingface.co/datasets/Pinelab/ManuFacet-1K" target="_blank" rel="noopener"><img src="assets/img/facet_logo_j.png" alt="FACET — ManuFacet-1K dataset"></a>
+        </div>
+      </div>
+      <div>
+        <h5>Explore</h5>
+        <ul>
+          <li><a href="#why">Why industrial data</a></li>
+          <li><a href="#demos">Demos</a></li>
+          <li><a href="#dataset">ManuFacet-1K dataset</a></li>
+          <li><a href="#model">FACET-0 model</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Get in touch</h5>
+        <ul>
+          <li><a href="mailto:ziwei.wang@ntu.edu.sg">ziwei.wang@ntu.edu.sg</a></li>
+          <li><a href="https://huggingface.co/Pinelab/Facet-0" target="_blank" rel="noopener">FACET-0 model ↗</a></li>
+          <li><a href="https://huggingface.co/datasets/Pinelab/ManuFacet-1K" target="_blank" rel="noopener">ManuFacet-1K dataset ↗</a></li>
+          <li><a href="assets/img/poster_overview.webp" target="_blank" rel="noopener">Project poster ↗</a></li>
+          <li><a href="https://www.ntu.edu.sg" target="_blank" rel="noopener">NTU Singapore ↗</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Data Foundry · PINE Lab, Nanyang Technological University</span>
+      <span>Enabling reliable, efficient, and precise data-driven manufacturing.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// static / reduced-motion mode: show everything immediately
+const STATIC=new URLSearchParams(location.search).has('static')||matchMedia('(prefers-reduced-motion: reduce)').matches;
+const fmtCount=(v,d)=>Number(v).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d});
+if(STATIC){
+  document.querySelectorAll('.rv').forEach(el=>el.classList.add('in'));
+  document.querySelectorAll('[data-count]').forEach(el=>el.textContent=fmtCount(el.dataset.count,+el.dataset.decimals||0));
+  document.querySelectorAll('.bar i').forEach(i=>i.style.width=i.dataset.w+'%');
+  document.documentElement.style.scrollBehavior='auto';
+  if(new URLSearchParams(location.search).has('static'))document.querySelector('.hero').style.minHeight='860px';
+}
+
+// nav scroll state + mobile menu
+const nav=document.getElementById('nav');
+addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>10),{passive:true});
+const links=document.getElementById('navLinks');
+document.getElementById('navToggle').onclick=()=>links.classList.toggle('open');
+links.querySelectorAll('a').forEach(a=>a.onclick=()=>links.classList.remove('open'));
+
+// reveal on scroll
+if(!STATIC){
+const rv=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');rv.unobserve(e.target)}}),{threshold:.12});
+document.querySelectorAll('.rv').forEach(el=>rv.observe(el));
+}
+
+// show poster as background so cards never flash black while loading
+document.querySelectorAll('video[poster]').forEach(v=>{v.style.background=`#000 url("${v.getAttribute('poster')}") center/cover no-repeat`});
+
+// lazy-load + autoplay videos when visible, pause offscreen
+const vo=new IntersectionObserver(es=>es.forEach(e=>{
+  const v=e.target;
+  if(e.isIntersecting){
+    if(v.dataset.src&&!v.src){v.src=v.dataset.src}
+    v.play().catch(()=>{});
+  }else{v.pause()}
+}),{rootMargin:'160px',threshold:.05});
+document.querySelectorAll('video[data-src]').forEach(v=>vo.observe(v));
+
+// stat count-up
+if(!STATIC){
+const co=new IntersectionObserver(es=>es.forEach(e=>{
+  if(!e.isIntersecting)return;co.unobserve(e.target);
+  const el=e.target,end=+el.dataset.count,dec=+el.dataset.decimals||0,t0=performance.now(),dur=1400;
+  const step=t=>{const p=Math.min((t-t0)/dur,1),v=end*(1-Math.pow(1-p,3));
+    el.textContent=fmtCount(v,dec);if(p<1)requestAnimationFrame(step)};
+  requestAnimationFrame(step);
+}),{threshold:.5});
+document.querySelectorAll('[data-count]').forEach(el=>co.observe(el));
+
+// bar widths
+const bo=new IntersectionObserver(es=>es.forEach(e=>{
+  if(!e.isIntersecting)return;bo.unobserve(e.target);
+  e.target.querySelectorAll('.bar i').forEach(i=>i.style.width=i.dataset.w+'%');
+}),{threshold:.3});
+document.querySelectorAll('.bars').forEach(el=>bo.observe(el));
+}
+
+</script>
+</body>
+</html>
